@@ -1,7 +1,13 @@
 import re
 from .utils import get_soup
 
-def get_briefings_statements(begin_page=1, end_page=3, verbose=True):
+patterns = [
+    re.compile('https://www.whitehouse.gov/briefings-statements/[\w]+'),
+    re.compile('https://www.whitehouse.gov/presidential-actions/[\w]+'),
+    re.compile('https://www.whitehouse.gov/articles/[\w]+')]
+url_base = 'https://www.whitehouse.gov/news/page/{}/'
+
+def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
     """
     Arguments
     ---------
@@ -18,16 +24,19 @@ def get_briefings_statements(begin_page=1, end_page=3, verbose=True):
         List of urls
     """
 
-    url_base = 'https://www.whitehouse.gov/news/page/{}/'
-    url_pattern = re.compile('https://www.whitehouse.gov/briefings-statements/[\w]+')
+    def is_matched(url):
+        for pattern in patterns:
+            if pattern.match(url):
+                return True
+        return False
 
     links_all = []
     for page in range(begin_page, end_page+1):
         url = url_base.format(page)
         soup = get_soup(url)
-        links = soup.select('a[href^=https://www.whitehouse.gov/briefings-statements/]')
+        links = soup.select('a[href^=https://www.whitehouse.gov/]')
         links = [link.attrs.get('href', '') for link in links]
-        links = [link for link in links if url_pattern.match(link)]
+        links = [link for link in links if is_matched(link)]
         links_all += links
         if verbose:
             print('get briefing statement urls {} / {}'.format(page, end_page))
