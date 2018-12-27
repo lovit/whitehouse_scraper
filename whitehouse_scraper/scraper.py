@@ -1,5 +1,17 @@
 import re
+import time
 from .utils import get_soup
+
+def get_latest_allnews(last_date, sleep=1.0):
+    """
+    Artuments
+    ---------
+    last_date : Date
+    sleep : float
+        Sleep time. Default 1.0 sec
+    """
+
+    raise NotImplemented
 
 patterns = [
     re.compile('https://www.whitehouse.gov/briefings-statements/[\w]+'),
@@ -41,3 +53,13 @@ def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
         if verbose:
             print('get briefing statement urls {} / {}'.format(page, end_page))
     return links_all
+
+def get_last_page_num():
+    """
+    Returns
+    -------
+    page : int
+        Last page number. 
+        eg: 503 in 'https://www.whitehouse.gov/news/page/503'
+    """
+    raise NotImplemented
