@@ -62,4 +62,15 @@ def get_last_page_num():
         Last page number. 
         eg: 503 in 'https://www.whitehouse.gov/news/page/503'
     """
-    raise NotImplemented
+
+    def last_element(url):
+        parts = [p for p in url.split('/') if p]
+        return int(parts[-1])
+
+    soup = get_soup('https://www.whitehouse.gov/news/')
+    last_page = max(
+        last_element(a.attrs['href'])
+        for a in soup.select('a[class=page-numbers]')
+    )
+
+    return last_page
