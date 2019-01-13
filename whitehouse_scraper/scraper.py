@@ -1,12 +1,17 @@
 import re
 import time
 from .utils import get_soup
+from .utils import news_dateformat
+from .utils import user_dateformat
+from .utils import strf_to_datetime
 
-def get_latest_allnews(last_date, sleep=1.0):
+
+def get_latest_allnews(begin_date, sleep=1.0):
     """
     Artuments
     ---------
-    last_date : Date
+    begin_date : str
+        eg. 2018-01-01
     sleep : float
         Sleep time. Default 1.0 sec
     """
@@ -18,6 +23,12 @@ patterns = [
     re.compile('https://www.whitehouse.gov/presidential-actions/[\w]+'),
     re.compile('https://www.whitehouse.gov/articles/[\w]+')]
 url_base = 'https://www.whitehouse.gov/news/page/{}/'
+
+def is_matched(url):
+    for pattern in patterns:
+        if pattern.match(url):
+            return True
+    return False
 
 def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
     """
@@ -32,27 +43,21 @@ def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
 
     Returns
     -------
-    links_all : list of str
+    urls_all : list of str
         List of urls
     """
 
-    def is_matched(url):
-        for pattern in patterns:
-            if pattern.match(url):
-                return True
-        return False
-
-    links_all = []
+    urls_all = []
     for page in range(begin_page, end_page+1):
         url = url_base.format(page)
         soup = get_soup(url)
         links = soup.select('a[href^=https://www.whitehouse.gov/]')
-        links = [link.attrs.get('href', '') for link in links]
-        links = [link for link in links if is_matched(link)]
-        links_all += links
+        urls = [link.attrs.get('href', '') for link in links]
+        urls = [url for url in urls if is_matched(url)]
+        urls_all += urls
         if verbose:
             print('get briefing statement urls {} / {}'.format(page, end_page))
-    return links_all
+    return urls_all
 
 def get_last_page_num():
     """
