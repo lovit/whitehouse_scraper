@@ -1,22 +1,11 @@
 import re
 import time
+from .parser import parse_page
 from .utils import get_soup
 from .utils import news_dateformat
 from .utils import user_dateformat
 from .utils import strf_to_datetime
 
-
-def get_latest_allnews(begin_date, sleep=1.0):
-    """
-    Artuments
-    ---------
-    begin_date : str
-        eg. 2018-01-01
-    sleep : float
-        Sleep time. Default 1.0 sec
-    """
-
-    raise NotImplemented
 
 patterns = [
     re.compile('https://www.whitehouse.gov/briefings-statements/[\w]+'),
@@ -24,11 +13,69 @@ patterns = [
     re.compile('https://www.whitehouse.gov/articles/[\w]+')]
 url_base = 'https://www.whitehouse.gov/news/page/{}/'
 
+
 def is_matched(url):
     for pattern in patterns:
         if pattern.match(url):
             return True
     return False
+
+def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
+    """
+    Artuments
+    ---------
+    begin_date : str
+        eg. 2018-01-01
+    max_num : int
+        Maximum number of news to be scraped
+    sleep : float
+        Sleep time. Default 1.0 sec
+
+    It yields
+    ---------
+    news : json object
+    """
+
+    # prepare parameters
+    d_begin = strf_to_datetime(begin_date, user_dateformat)
+    end_page = get_last_page_num()
+    n_news = 0
+    outdate = False
+
+    for page in range(1, end_page+1):
+
+        # check number of scraped news
+        if n_news >= max_num or outdate:
+            break
+
+        # get urls
+        url = url_base.format(page)
+        soup = get_soup(url)
+        links = soup.select('a[href^=https://www.whitehouse.gov/]')
+        urls = [link.attrs.get('href', '') for link in links]
+        urls = [url for url in urls if is_matched(url)]
+
+        # scrap
+        for url in urls:
+
+            news_json = parse_page(url)
+
+            # check date
+            d_news = strf_to_datetime(news_json['time'], news_dateformat)
+            if d_begin > d_news:
+                outdate = True
+                print('Stop scrapping. {} / {} news was scrapped'.format(n_news, max_num))
+                print('The oldest news has been created after {}'.format(begin_date))
+                break
+
+            # yield
+            yield news_json
+
+            # check number of scraped news
+            n_news += 1
+            if n_news >= max_num:
+                break
+            time.sleep(sleep)
 
 def get_allnews_urls(begin_page=1, end_page=3, verbose=True):
     """
