@@ -27,9 +27,9 @@ def scraping(begin_date, max_num, sleep, directory, verbose):
             continue
 
         if verbose:
-            title = json_obj['title']
+            url = json_obj['url']
             time = json_obj['time']
-            print('[{} / {}] ({}) {}'.format(i+1, max_num, time, title))
+            print('[{} / {}] ({}) {}'.format(i+1, max_num, time, url))
 
     if n_exceptions > 0:
         print('Exist %d exceptions' % n_exceptions)
