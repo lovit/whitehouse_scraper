@@ -51,7 +51,7 @@ def yield_latest_allnews(begin_date, max_num=10, sleep=1.0):
         # get urls
         url = url_base.format(page)
         soup = get_soup(url)
-        links = soup.select('a[href^=https://www.whitehouse.gov/]')
+        links = soup.select('a[href^="https://www.whitehouse.gov/"]')
         urls = [link.attrs.get('href', '') for link in links]
         urls = [url for url in urls if is_matched(url)]
 
